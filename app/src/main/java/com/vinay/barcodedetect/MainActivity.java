@@ -22,39 +22,52 @@ public class MainActivity extends AppCompatActivity {
     Button button;
     ImageView imageView;
     TextView textView;
+    Bitmap bitmap = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        imageView = findViewById(R.id.imgview);
-        textView = findViewById(R.id.txtContent);
 
-        Bitmap bitmap = BitmapFactory.
-                decodeResource(getApplicationContext().getResources(), R.drawable.puppy);
-        imageView.setImageBitmap(bitmap);
-
-        BarcodeDetector detector = new BarcodeDetector.Builder(getApplicationContext()).
-                setBarcodeFormats(Barcode.DATA_MATRIX | Barcode.QR_CODE)
+        final BarcodeDetector detector = new BarcodeDetector.Builder(getApplicationContext()).
+                setBarcodeFormats(Barcode.DATA_MATRIX | Barcode.QR_CODE | Barcode.CODE_128
+                        | Barcode.EAN_8 | Barcode.EAN_13 | Barcode.UPC_A | Barcode.UPC_E | Barcode.CODE_39 | Barcode.CODE_93
+                        | Barcode.CODE_128 | Barcode.ITF | Barcode.CODABAR | Barcode.PDF417 | Barcode.ITF)
                 .build();
-        if(!detector.isOperational()){
+
+        if(!detector.isOperational()) {
             textView.setText("Could not set up the detector!");
             return;
         }
+
+        imageView = findViewById(R.id.imgview);
+        textView = findViewById(R.id.txtContent);
+
+        bitmap = BitmapFactory.
+                decodeResource(getApplicationContext().getResources(), R.drawable.bar_2);
+        imageView.setImageBitmap(bitmap);
+
 
         button = findViewById(R.id.button);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view){
-
+                Frame frame = new Frame.Builder().setBitmap(bitmap).build();
+                SparseArray<Barcode> barcode = detector.detect(frame);
+                Barcode thisCode = null;
+                if(barcode.size() > 0) {
+                    for(int i = 0; i <= barcode.size() - 1; i++) {
+                        thisCode = barcode.valueAt(i);
+                        textView.setText(thisCode.rawValue + " \n ");
+                    }
+//                    Barcode thisCode = barcode.valueAt(0);
+//                    textView.setText(thisCode.rawValue);
+//                    textView.setText("\n");
+                } else {
+                    textView.setText("Could not read barcode, Please try again!!");
+                }
             }
         });
-
-        Frame frame = new Frame.Builder().setBitmap(bitmap).build();
-        SparseArray<Barcode> barcode = detector.detect(frame);
-
-        Barcode thisCode = barcode.valueAt(0);
-        textView.setText(thisCode.rawValue);
 
 
     }
